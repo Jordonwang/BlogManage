@@ -18,10 +18,19 @@ const {
 
 router.prefix('/user');
 // 用户信息
-router.get('/userInfo',async (ctx,next)=>{
+router.get('/info',async (ctx,next)=>{
 
   const userPhone = ctx.query.userPhone
   const cookies = ctx.cookies.get('MyName')
+  ctx.body = {
+    code:0,
+    message:'获取成功',
+    roles: ['admin', 'editor'],
+    name: 'Jorodn',
+    avatar: 'NNNNNNN',
+    introduction: 'dda7ec12-086a-49b9-b3d1-4665c2c68ec3_w679_h280.png',
+  }
+  return
   if(!userPhone){
     ctx.body = {
       code:999,
@@ -110,26 +119,30 @@ router.post('/userRegister',async (ctx,next)=>{
 // 登陆
 router.post('/login',async (ctx,next)=> {
 
-  const userPhone = ctx.request.body.userPhone
-  const userPassword = ctx.request.body.userPassword
+  const username = ctx.request.body.username
+  const userPassword = ctx.request.body.password
 
-  const loginData = {
-    userPhone,userPassword
-  }
+  // const loginData = {
+  //   username,userPassword
+  // }
   try{
-    let res = await checkLogin(loginData)
+    // let res = await checkLogin(loginData)
     let userToken = {
-      name: userPhone
+      name: username
     }
     // expiresInMinutes  expiresIn :1h
     const token = jwt.sign(userToken, secret, {expiresIn: '1h'})
 
-    if(res.length>0){
+    if(username == 'admin'){
 
       ctx.body = {
         code:200,
         message:'登陆成功',
-        data:loginData,
+        // data:loginData,
+        roles: ['admin', 'editor'],
+        name: 'Jorodn',
+        avatar: 'NNNNNNN',
+        introduction: 'dda7ec12-086a-49b9-b3d1-4665c2c68ec3_w679_h280.png',
         token
       }
     }else{

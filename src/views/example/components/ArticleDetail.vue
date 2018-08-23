@@ -42,10 +42,11 @@
                 </el-col>
 
                 <el-col :span="6">
-                  <el-form-item label-width="60px" label="重要性:" class="postInfo-container-item">
-                    <el-rate style="margin-top:8px;" v-model="postForm.importance" :max='3' :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :low-threshold="1"
-                      :high-threshold="3">
-                    </el-rate>
+                  <el-form-item label-width="60px" label="分类:" class="postInfo-container-item">
+                    <el-select v-model="postForm.catagory" placeholder="搜索分类" @change="getcatagoryList">
+                      <el-option v-for="(item,index) in catagoryOptions" :key="item.value" :label="item.label" :value="item.value">
+                      </el-option>
+                    </el-select>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -82,9 +83,10 @@ import 'vue-multiselect/dist/vue-multiselect.min.css'// 多选框组件css
 import Sticky from '@/components/Sticky' // 粘性header组件
 import { validateURL } from '@/utils/validate'
 import { fetchArticle } from '@/api/article'
-import { userSearch } from '@/api/remoteSearch'
+// import { userSearch } from '@/api/remoteSearch'
 // import Warning from './Warning'
 import { CommentDropdown, PlatformDropdown, SourceUrlDropdown } from './Dropdown'
+import { createArticle } from '../articleService'
 
 const defaultForm = {
   status: 'draft',
@@ -97,6 +99,7 @@ const defaultForm = {
   id: undefined,
   platforms: ['a-platform'],
   comment_disabled: false,
+  catagory: '',
   importance: 0
 }
 
@@ -140,6 +143,19 @@ export default {
       postForm: Object.assign({}, defaultForm),
       loading: false,
       userListOptions: [],
+      catagoryOptions: [{
+        value: '1',
+        label: '前端'
+      }, {
+        value: '2',
+        label: 'Web'
+      }, {
+        value: '3',
+        label: 'Html5'
+      }, {
+        value: '4',
+        label: 'CSS3'
+      }],
       rules: {
         image_uri: [{ validator: validateRequire }],
         title: [{ validator: validateRequire }],
@@ -173,11 +189,12 @@ export default {
       })
     },
     submitForm() {
-      this.postForm.display_time = parseInt(this.display_time / 1000)
+      // this.postForm.display_time = parseInt(this.display_time / 1000)
       console.log(this.postForm)
       this.$refs.postForm.validate(valid => {
         if (valid) {
           this.loading = true
+          this.createArticle()
           this.$notify({
             title: '成功',
             message: '发布文章成功',
@@ -191,6 +208,13 @@ export default {
           return false
         }
       })
+    },
+    async createArticle() {
+      const r = await createArticle(this.postForm)
+      if (r) {
+        console.log('createArticle')
+        console.log(r)
+      }
     },
     draftForm() {
       if (this.postForm.content.length === 0 || this.postForm.title.length === 0) {
@@ -209,10 +233,14 @@ export default {
       this.postForm.status = 'draft'
     },
     getRemoteUserList(query) {
-      userSearch(query).then(response => {
-        if (!response.data.items) return
-        this.userListOptions = response.data.items.map(v => v.name)
-      })
+      this.userListOptions = ['Admin', 'Jordon']
+      //   userSearch(query).then(response => {
+      //   if (!response.data.items) return
+      //   this.userListOptions = response.data.items.map(v => v.name)
+      // })
+    },
+    getcatagoryList(res) {
+      this.catagory = res
     }
   }
 }

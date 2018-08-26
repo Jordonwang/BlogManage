@@ -167,7 +167,7 @@ export const asyncRouterMap = [
         meta: { title: 'createArticle', icon: 'edit' }
       },
       {
-        path: 'edit/:id(\\d+)',
+        path: 'edit/:id',
         component: () => import('@/views/example/edit'),
         name: 'editArticle',
         meta: { title: 'editArticle', noCache: true },

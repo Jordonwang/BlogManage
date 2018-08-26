@@ -1,51 +1,47 @@
 <template>
   <div class="app-container">
 
-    <el-table :data="list" v-loading.body="listLoading" border fit highlight-current-row style="width: 100%">
-      <el-table-column align="center" label="ID" width="80">
+    <el-table :data="list" v-loading.body="listLoading" border fit highlight-current-row style="width: 100%"
+              @row-click="rowClick">
+      <el-table-column
+        type="index"
+        width="50">
+      </el-table-column>
+      <el-table-column align="center" prop="title" label="title" width="180" sortable></el-table-column>
+      <el-table-column align="center" prop="tags" label="tags" width="180" sortable>
         <template slot-scope="scope">
-          <span>{{scope.row.id}}</span>
+          <span>{{scope.row.tags.slice(2,scope.row.tags.length-2)}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column align="center" prop="categories" label="categories" width="180" sortable>
+        <template slot-scope="scope">
+          <span>{{scope.row.categories.slice(2,scope.row.categories.length-2)}}</span>
         </template>
       </el-table-column>
 
-      <el-table-column width="180px" align="center" label="Date">
+      <el-table-column width="180px" prop="date" align="center" label="date" :sortable="true">
         <template slot-scope="scope">
-          <span>{{scope.row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}')}}</span>
+          <span>{{scope.row.date}}</span>
         </template>
       </el-table-column>
 
-      <el-table-column width="120px" align="center" label="Author">
+      <el-table-column class-name="status-col" label="content">
         <template slot-scope="scope">
-          <span>{{scope.row.author}}</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column width="100px" label="Importance">
-        <template slot-scope="scope">
-          <svg-icon v-for="n in +scope.row.importance" icon-class="star" class="meta-item__icon" :key="n"></svg-icon>
-        </template>
-      </el-table-column>
-
-      <el-table-column class-name="status-col" label="Status" width="110">
-        <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter">{{scope.row.status}}</el-tag>
-        </template>
-      </el-table-column>
-
-      <el-table-column min-width="300px" label="Title">
-        <template slot-scope="scope">
-
-          <router-link class="link-type" :to="'/example/edit/'+scope.row.id">
-            <span>{{ scope.row.title }}</span>
-          </router-link>
+          <span style="white-space: nowrap">{{scope.row.content.substr(0,100)}}</span>
         </template>
       </el-table-column>
 
       <el-table-column align="center" label="Actions" width="120">
         <template slot-scope="scope">
-          <router-link :to="'/example/edit/'+scope.row.id">
+          <router-link :to="'/example/edit/'+scope.row.filename.slice(0,scope.row.filename.length-3)">
             <el-button type="primary" size="small" icon="el-icon-edit">Edit</el-button>
           </router-link>
+        </template>
+      </el-table-column>
+
+      <el-table-column align="center" label="del" width="120">
+        <template>
+          <el-button type="primary" icon="el-icon-delete">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -60,7 +56,7 @@
 </template>
 
 <script>
-import { fetchList } from '@/api/article'
+import { fetchList } from './articleService'
 
 export default {
   name: 'articleList',
@@ -89,16 +85,25 @@ export default {
     this.getList()
   },
   methods: {
-    getList() {
+    rowClick(e) {
+      console.log(e)
+    },
+    async getList() {
       this.listLoading = true
-      fetchList(this.listQuery).then(response => {
-        console.log(response)
-        this.list = response.data.items
-        this.total = response.data.total
+      try {
+        const res = await fetchList(this.listQuery)
         this.listLoading = false
-      }).catch((err) => {
-        console.log(err)
-      })
+        if (res) {
+          this.list = res.data.articleList
+          this.total = res.data.articleList.length
+        }
+      } catch (err) {
+        this.listLoading = false
+        this.$message({
+          message: '网络错误',
+          type: 'error'
+        })
+      }
     },
     handleSizeChange(val) {
       this.listQuery.limit = val
